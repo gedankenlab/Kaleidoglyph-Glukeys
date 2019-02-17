@@ -34,6 +34,14 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
     // Change the `event.key` value to the one looked up in the `glukeys_[]` array of
     // `Key` objects (and let Controller restart the onKeyEvent() processing
     event.key = key;
+    setSticky(event.addr);
+    return EventHandlerResult::proceed;
+  }
+
+  if (event.state.toggledOff()) {
+    if (isSticky(event.addr)) {
+      return EventHandlerResult::abort;
+    }
   }
 
   return EventHandlerResult::proceed;
@@ -49,7 +57,7 @@ void Plugin::postKeyboardReport(KeyEvent event) {
 // Check to see if the `Key` is an Glukeys key and if so, return the corresponding
 // (looked-up) `Key` value, or `cKey::clear` if there is none.
 inline
-const Key Plugin::lookupGlukey(Key key) {
+const Key Plugin::lookupGlukey(Key key) const {
   if (GlukeysKey::verify(key)) {
     byte glukey_index = GlukeysKey(key).index();
     if (glukey_index < glukey_count_) {
