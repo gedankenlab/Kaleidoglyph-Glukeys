@@ -26,12 +26,9 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
       if (key == cKey::clear) {
         return EventHandlerResult::abort;
       }
-      // It's a GlukeysKey!
+      // Change the `event.key` value to the one looked up in the `glukeys_[]` array of `Key` objects
+      event.key = key;
     }
-  } else if (event.state.toggledOff()) {
-    
-  } else {
-    // How did we get here?
   }
 
   return EventHandlerResult::proceed;
@@ -40,7 +37,7 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
 
 // Released sticky keys (usually) get released here
 void Plugin::postKeyboardReport(KeyEvent event) {
-  
+  // To be implemented later
 }
 
 
