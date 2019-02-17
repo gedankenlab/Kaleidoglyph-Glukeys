@@ -22,13 +22,18 @@ namespace glukeys {
 EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
 
   if (event.state.toggledOn()) {
-    if (const Key key = lookupGlukey(event.key)) {
-      if (key == cKey::clear) {
-        return EventHandlerResult::abort;
-      }
-      // Change the `event.key` value to the one looked up in the `glukeys_[]` array of `Key` objects
-      event.key = key;
+    const Key key = lookupGlukey(event.key);
+    // If it's not a GlukeysKey, ignore this event and proceed
+    if (key == cKey::clear) {
+      return EventHandlerResult::proceed;
     }
+    // If it's a GlukeysKey, but its index value is out of bounds, abort
+    if (key == cKey::blank) {
+      return EventHandlerResult::abort;
+    }
+    // Change the `event.key` value to the one looked up in the `glukeys_[]` array of
+    // `Key` objects (and let Controller restart the onKeyEvent() processing
+    event.key = key;
   }
 
   return EventHandlerResult::proceed;
@@ -44,17 +49,16 @@ void Plugin::postKeyboardReport(KeyEvent event) {
 // Check to see if the `Key` is an Glukeys key and if so, return the corresponding
 // (looked-up) `Key` value, or `cKey::clear` if there is none.
 inline
-const Key* Plugin::lookupGlukey(Key key) {
+const Key Plugin::lookupGlukey(Key key) {
   if (GlukeysKey::verify(key)) {
     byte glukey_index = GlukeysKey(key).index();
     if (glukey_index < glukey_count_) {
       return glukeys_[glukey_index];
     }
+    // Indicator for an invalid index
+    return cKey::blank;
   }
-  // It might be more satisfying to return `cKey::blank` (indicating lookup failure), but
-  // using `clear` instead might mean we can drop some code in the event handler, because
-  // the key will just be simply ignored. Note that `blank` might work just as well -- I
-  // haven't thought it through.
+  // Indicator for a non-GlukeysKey
   return cKey::clear;
 }
 

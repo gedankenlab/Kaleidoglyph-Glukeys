@@ -33,7 +33,7 @@ class Plugin : public kaleidoglyph::Plugin {
   const Key* const glukeys_;
   const byte       glukey_count_;
 
-  const Glukey* lookupGlukey(Key key);
+  const Key lookupGlukey(Key key);
 
 };
 
