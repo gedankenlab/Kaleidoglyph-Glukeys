@@ -17,13 +17,6 @@
 namespace kaleidoglyph {
 namespace glukeys {
 
-// Glukey structure. I don't think we even need to bother with this
-struct Glukey {
-  Key key;
-
-  Glukey(Key _key) : key(_key) {}
-};
-
 
 class Plugin : public kaleidoglyph::Plugin {
 
@@ -39,8 +32,8 @@ class Plugin : public kaleidoglyph::Plugin {
 
  private:
   // An array of Glukey objects
-  const Glukey* const glukeys_;
-  const byte          glukey_count_;
+  const Key* const glukeys_;
+  const byte       glukey_count_;
 
   byte temp_state_[bitfieldSize(total_keys)];
   byte sticky_state_[bitfieldSize(total_keys)];
