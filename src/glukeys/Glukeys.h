@@ -26,17 +26,12 @@ class Plugin : public kaleidoglyph::Plugin {
 
   EventHandlerResult onKeyEvent(KeyEvent& event);
 
-  bool preKeyboardReport(hid::keyboard::Report& keyboard_report);
-
   void postKeyboardReport(KeyEvent event);
 
  private:
   // An array of Glukey objects
   const Key* const glukeys_;
   const byte       glukey_count_;
-
-  byte temp_state_[bitfieldSize(total_keys)];
-  byte sticky_state_[bitfieldSize(total_keys)];
 
   const Glukey* lookupGlukey(Key key);
 
