@@ -48,7 +48,17 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
     if (glukey == cKey::clear) {
       // It's not a glukey; all glukeys should be marked for release after the report for
       // this key is sent. There are several ways to do this, but they all have drawbacks.
-      release_trigger_ = event.addr;
+      if (release_trigger_ == cKeyAddr::invalid) {
+        release_trigger_ = event.addr;
+      } else {
+        releaseAllTempKeys();
+        // If we clear `release_trigger_` here (as we probably should), we end up using 40
+        // more bytes of PROGMEM for some reason, and the observed behaviour is the
+        // same. The problem is that we end up calling `releaseAllTempKeys()` during every
+        // normal keypress, which means executing a for loop to find `temp_state_[]`
+        // empty, and therefore slowing down every event.
+        //release_trigger_ = cKeyAddr::invalid;
+      }
       return EventHandlerResult::proceed;
     }
     // If it's a GlukeysKey, but its index value is out of bounds, abort
@@ -76,6 +86,7 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
     // If the trigger key was released, also release any `sticky` glukeys
     if (event.addr == release_trigger_) {
       releaseAllTempKeys();
+      release_trigger_ = cKeyAddr::invalid;
     }
   }
 
@@ -135,6 +146,10 @@ void Plugin::releaseAllTempKeys() {
       }
     }
   }
+  // It would make sense to clear the release trigger key here, as well, but it's not
+  // always necessary, because in the normal case, it's not possible to get a release of
+  // the trigger key until after it is pressed again. See comment above where
+  // releaseAllKeys() is called.
 }
 
 } // namespace glukeys {
