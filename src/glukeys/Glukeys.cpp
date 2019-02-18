@@ -100,11 +100,11 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
 // Check to see if the `Key` is an Glukeys key and if so, return the corresponding
 // (looked-up) `Key` value, or `cKey::clear` if there is none.
 inline
-const Key Plugin::lookupGlukey(Key key) const {
+const Key Plugin::lookupGlukey(const Key key) const {
   if (GlukeysKey::verify(key)) {
     byte glukey_index = GlukeysKey(key).index();
     if (glukey_index < glukey_count_) {
-      return glukeys_[glukey_index];
+      return getProgmemKey(glukeys_[glukey_index]);
     }
     // Indicator for an invalid index
     return cKey::blank;
