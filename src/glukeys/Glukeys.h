@@ -36,9 +36,26 @@ class Plugin : public kaleidoglyph::Plugin {
   const byte       glukey_count_;
 
   // State variables -- one `temp` bit and one `sticky` bit for each valid `KeyAddr`
+  byte temp_state_[state_byte_count];
   byte sticky_state_[state_byte_count];
 
   const Key lookupGlukey(Key key) const;
+
+  bool isTemp(KeyAddr k) const {
+    byte r = k.addr() / 8;
+    byte c = k.addr() % 8;
+    return bitRead(temp_state_[r], c);
+  }
+  void setTemp(KeyAddr k) {
+    byte r = k.addr() / 8;
+    byte c = k.addr() % 8;
+    bitSet(temp_state_[r], c);
+  }
+  void clearTemp(KeyAddr k) {
+    byte r = k.addr() / 8;
+    byte c = k.addr() % 8;
+    bitClear(temp_state_[r], c);
+  }
 
   bool isSticky(KeyAddr k) const {
     byte r = k.addr() / 8;

@@ -21,15 +21,30 @@ namespace glukeys {
 // Event handler
 EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
 
+  // This might make the code more efficient, but might not be worth it:
+  // KeyAddr k = event.addr;
+  // byte r = k.addr() / 8;
+  // byte c = k.addr() % 8;
+
   if (event.state.toggledOn()) {
-    // If the key is sticky (i.e. locked), clear the sticky bit
+    // This key can't be `pending` if it's toggling on (unless another plugin is injecting
+    // this event)
+    if (isTemp(event.addr)) {
+      // `sticky` => `locked`
+      clearTemp(event.addr);
+      return EventHandlerResult::abort;
+    }
     if (isSticky(event.addr)) {
+      // `locked` => `clear`
       clearSticky(event.addr);
       return EventHandlerResult::abort;
     }
+    // Determine if the pressed key is a glukey
     const Key glukey = lookupGlukey(event.key);
     // If it's not a GlukeysKey, ignore this event and proceed
     if (glukey == cKey::clear) {
+      // It's not a glukey; all glukeys should be marked for release at the end of this
+      // cycle (not just after the report is sent)
       return EventHandlerResult::proceed;
     }
     // If it's a GlukeysKey, but its index value is out of bounds, abort
@@ -39,11 +54,18 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
     // Change the `event.key` value to the one looked up in the `glukeys_[]` array of
     // `Key` objects (and let Controller restart the onKeyEvent() processing
     event.key = glukey;
-    setSticky(event.addr);
+    // `clear` => `pending`
+    setTemp(event.addr);
     return EventHandlerResult::proceed;
   }
 
   if (event.state.toggledOff()) {
+    // If the key is `pending`, make it `sticky`
+    if (isTemp(event.addr)) {
+      // `pending` => `sticky`
+      setSticky(event.addr);
+    }
+    // If the key is either `sticky` or `locked`, stop the release event
     if (isSticky(event.addr)) {
       return EventHandlerResult::abort;
     }
