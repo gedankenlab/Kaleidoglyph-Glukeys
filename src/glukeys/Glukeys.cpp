@@ -49,7 +49,10 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
       // It's not a glukey; all glukeys should be marked for release after the report for
       // this key is sent. There are several ways to do this, but they all have drawbacks.
       if (release_trigger_ == cKeyAddr::invalid) {
-        release_trigger_ = event.addr;
+        // If no `temp_state_[]` bits are set, don't set release trigger
+        if (temp_state_count_ != 0) {
+          release_trigger_ = event.addr;
+        }
       } else {
         releaseAllTempKeys();
         // If we clear `release_trigger_` here (as we probably should), we end up using 40
@@ -146,6 +149,7 @@ void Plugin::releaseAllTempKeys() {
       }
     }
   }
+  temp_state_count_ = 0;
   // It would make sense to clear the release trigger key here, as well, but it's not
   // always necessary, because in the normal case, it's not possible to get a release of
   // the trigger key until after it is pressed again. See comment above where
