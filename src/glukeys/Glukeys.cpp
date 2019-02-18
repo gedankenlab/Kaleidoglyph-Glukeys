@@ -25,6 +25,9 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
   // KeyAddr k = event.addr;
   // byte r = k.addr() / 8;
   // byte c = k.addr() % 8;
+  if (event.state.isInjected()) {
+    return EventHandlerResult::proceed;
+  }
 
   if (event.state.toggledOn()) {
     // This key can't be `pending` if it's toggling on (unless another plugin is injecting
