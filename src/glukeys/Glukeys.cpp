@@ -21,46 +21,52 @@ namespace glukeys {
 // Event handler
 EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
 
-  // This might make the code more efficient, but might not be worth it:
-  // KeyAddr k = event.addr;
-  // byte r = k.addr() / 8;
-  // byte c = k.addr() % 8;
+  // Ignore all `injected` events
   if (event.state.isInjected()) {
     return EventHandlerResult::proceed;
   }
 
   if (event.state.toggledOn()) {
+
     // This key can't be `pending` if it's toggling on (unless another plugin is injecting
-    // this event)
+    // this event), so if its `temp` bit is set, that means it's already in the `sticky`
+    // state, so this is the second press of the key, and we should therefore lock it.
     if (isTemp(event.addr)) {
       // `sticky` => `locked`
       clearTemp(event.addr);
       return EventHandlerResult::abort;
     }
+
+    // We have already eliminated the possibility of this key being in either the
+    // `pending` or `sticky` state, that means if its `sticky` bit is set, the key is
+    // `locked`. This is the third press, so we should clear it (and we don't need to
+    // clear `temp`, because we know it's already clear).
     if (isSticky(event.addr)) {
       // `locked` => `clear`
       clearSticky(event.addr);
       return EventHandlerResult::abort;
     }
+
     // Determine if the pressed key is a glukey
     const Key glukey = lookupGlukey(event.key);
     // If it's not a GlukeysKey, ignore this event and proceed
     if (glukey == cKey::clear) {
-      // It's not a glukey; all glukeys should be marked for release after the report for
-      // this key is sent. There are several ways to do this, but they all have drawbacks.
+      // It's not a glukey, so all glukeys should be marked for release after the report
+      // for this key is sent. First we check to see if the release trigger has already
+      // been set, because that key might still be held.
       if (release_trigger_ == cKeyAddr::invalid) {
-        // If no `temp_state_[]` bits are set, don't set release trigger
+        // There is no release trigger set, so we're not already waiting for one to be
+        // released. But we only set the release trigger addr if there are any keys
+        // `pending` or `sticky`.
         if (temp_state_count_ != 0) {
           release_trigger_ = event.addr;
         }
       } else {
+        // There is a release trigger set, and this is a press of a different key. Any
+        // glukeys in a `sticky` state should only apply to the trigger key, not this one,
+        // so before we finish processing this event, we release all the `sticky` keys.
         releaseAllTempKeys();
-        // If we clear `release_trigger_` here (as we probably should), we end up using 40
-        // more bytes of PROGMEM for some reason, and the observed behaviour is the
-        // same. The problem is that we end up calling `releaseAllTempKeys()` during every
-        // normal keypress, which means executing a for loop to find `temp_state_[]`
-        // empty, and therefore slowing down every event.
-        //release_trigger_ = cKeyAddr::invalid;
+        release_trigger_ = cKeyAddr::invalid;
       }
       return EventHandlerResult::proceed;
     }
@@ -73,6 +79,11 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
     event.key = glukey;
     // `clear` => `pending`
     setTemp(event.addr);
+    // Clear the release trigger whenever a glukey is pressed to prevent a bug caused by
+    // rollover from the previous (unreleased) trigger key when a new glukey is
+    // pressed. If we don't do this, the previous trigger key's release will also release
+    // the newly-pressed glukey before its trigger is pressed.
+    release_trigger_ = cKeyAddr::invalid;
     return EventHandlerResult::proceed;
   }
 
