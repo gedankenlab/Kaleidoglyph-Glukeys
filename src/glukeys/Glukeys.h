@@ -53,7 +53,7 @@ class Plugin : public kaleidoglyph::Plugin {
   void clearSticky(KeyAddr k) {
     byte r = k.addr() / 8;
     byte c = k.addr() % 8;
-    bitSet(sticky_state_[r], c);
+    bitClear(sticky_state_[r], c);
   }
 
 };

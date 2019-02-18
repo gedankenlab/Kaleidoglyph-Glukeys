@@ -22,6 +22,11 @@ namespace glukeys {
 EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
 
   if (event.state.toggledOn()) {
+    // If the key is sticky (i.e. locked), clear the sticky bit
+    if (isSticky(event.addr)) {
+      clearSticky(event.addr);
+      return EventHandlerResult::abort;
+    }
     const Key key = lookupGlukey(event.key);
     // If it's not a GlukeysKey, ignore this event and proceed
     if (key == cKey::clear) {
