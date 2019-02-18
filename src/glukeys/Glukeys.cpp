@@ -97,12 +97,6 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
 }
 
 
-// Released sticky keys (usually) get released here
-void Plugin::postKeyboardReport(KeyEvent event) {
-  // To be implemented later
-}
-
-
 // Check to see if the `Key` is an Glukeys key and if so, return the corresponding
 // (looked-up) `Key` value, or `cKey::clear` if there is none.
 inline

@@ -28,8 +28,6 @@ class Plugin : public kaleidoglyph::Plugin {
 
   EventHandlerResult onKeyEvent(KeyEvent& event);
 
-  void postKeyboardReport(KeyEvent event);
-
  private:
   // An array of Glukey objects
   const Key* const glukeys_;
