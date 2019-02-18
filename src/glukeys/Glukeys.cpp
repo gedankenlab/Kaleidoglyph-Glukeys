@@ -46,8 +46,9 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
     const Key glukey = lookupGlukey(event.key);
     // If it's not a GlukeysKey, ignore this event and proceed
     if (glukey == cKey::clear) {
-      // It's not a glukey; all glukeys should be marked for release at the end of this
-      // cycle (not just after the report is sent)
+      // It's not a glukey; all glukeys should be marked for release after the report for
+      // this key is sent. There are several ways to do this, but they all have drawbacks.
+      release_trigger_ = event.addr;
       return EventHandlerResult::proceed;
     }
     // If it's a GlukeysKey, but its index value is out of bounds, abort
@@ -71,6 +72,10 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
     // If the key is either `sticky` or `locked`, stop the release event
     if (isSticky(event.addr)) {
       return EventHandlerResult::abort;
+    }
+    // If the trigger key was released, also release any `sticky` glukeys
+    if (event.addr == release_trigger_) {
+      releaseAllTempKeys();
     }
   }
 
@@ -98,6 +103,38 @@ const Key Plugin::lookupGlukey(Key key) const {
   }
   // Indicator for a non-GlukeysKey
   return cKey::clear;
+}
+
+
+// Clear all `pending` keys and release all `sticky` keys
+void Plugin::releaseAllTempKeys() {
+  for (byte r = 0; r < state_byte_count; ++r) {
+    // We expect that most keys won't have any glukey bits set
+    if (temp_state_[r] == 0) continue;
+
+    // Store a bitfield of the keys that need to have release events sent
+    byte sticky_glukeys = temp_state_[r] & sticky_state_[r];
+
+    // Unset all sticky bits of keys with the temp bit set. This means that any keys in
+    // the `sticky` state will end up `clear`, not `locked`:
+    sticky_state_[r] &= ~temp_state_[r];
+
+    // Clear all temp bits. This means that all keys that were `pending` become `clear`:
+    temp_state_[r] = 0;
+
+    // Send release events for sticky keys:
+    for (byte c = 0; c < 8; ++c) {
+      if (bitRead(sticky_glukeys, c)) {
+        // Send release event
+        KeyAddr k { byte(r * 8 + c) };
+        KeyEvent event {
+          k,
+          cKeyState::injected_release
+        };
+        controller_.handleKeyEvent(event);
+      }
+    }
+  }
 }
 
 } // namespace glukeys {

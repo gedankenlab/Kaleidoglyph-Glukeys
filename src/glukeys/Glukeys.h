@@ -23,8 +23,8 @@ constexpr byte state_byte_count = bitfieldSize(total_keys);
 class Plugin : public kaleidoglyph::Plugin {
 
  public:
-  Plugin(const Key* const glukeys, const byte glukey_count)
-      : glukeys_(glukeys), glukey_count_(glukey_count) {}
+  Plugin(const Key* const glukeys, const byte glukey_count, Controller& controller)
+      : glukeys_(glukeys), glukey_count_(glukey_count), controller_(controller) {}
 
   EventHandlerResult onKeyEvent(KeyEvent& event);
 
@@ -35,11 +35,19 @@ class Plugin : public kaleidoglyph::Plugin {
   const Key* const glukeys_;
   const byte       glukey_count_;
 
+  // A reference to the keymap for lookups
+  Controller& controller_;
+
   // State variables -- one `temp` bit and one `sticky` bit for each valid `KeyAddr`
   byte temp_state_[state_byte_count];
   byte sticky_state_[state_byte_count];
 
+  // Signal that `sticky` glukeys should be released
+  KeyAddr release_trigger_{cKeyAddr::invalid};
+
   const Key lookupGlukey(Key key) const;
+
+  void releaseAllTempKeys();
 
   bool isTemp(KeyAddr k) const {
     byte r = k.addr() / 8;
