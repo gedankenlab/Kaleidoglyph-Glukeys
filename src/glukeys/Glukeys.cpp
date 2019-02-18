@@ -27,18 +27,18 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
       clearSticky(event.addr);
       return EventHandlerResult::abort;
     }
-    const Key key = lookupGlukey(event.key);
+    const Key glukey = lookupGlukey(event.key);
     // If it's not a GlukeysKey, ignore this event and proceed
-    if (key == cKey::clear) {
+    if (glukey == cKey::clear) {
       return EventHandlerResult::proceed;
     }
     // If it's a GlukeysKey, but its index value is out of bounds, abort
-    if (key == cKey::blank) {
+    if (glukey == cKey::blank) {
       return EventHandlerResult::abort;
     }
     // Change the `event.key` value to the one looked up in the `glukeys_[]` array of
     // `Key` objects (and let Controller restart the onKeyEvent() processing
-    event.key = key;
+    event.key = glukey;
     setSticky(event.addr);
     return EventHandlerResult::proceed;
   }
