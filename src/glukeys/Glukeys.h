@@ -86,5 +86,7 @@ class Plugin : public kaleidoglyph::Plugin {
 
 };
 
+bool isTriggerCandidate(const Key key);
+
 } // namespace qukeys {
 } // namespace kaleidoglyph {

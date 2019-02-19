@@ -51,9 +51,15 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
     const Key glukey = lookupGlukey(event.key);
     // If it's not a GlukeysKey, ignore this event and proceed
     if (glukey == cKey::clear) {
-      // It's not a glukey, so all glukeys should be marked for release after the report
-      // for this key is sent. First we check to see if the release trigger has already
-      // been set, because that key might still be held.
+      // It's not a glukey, check to see if this key should trigger `sticky` key
+      // release. Modifiers and Layer change keys should never trigger `sticky` glukey
+      // releases, even if they're not glukeys themselves.
+      if (! isTriggerCandidate(event.key)) {
+        return EventHandlerResult::proceed;
+      }
+
+      // This key is a release trigger candidate, so now we check to see if a release
+      // trigger has already been set (by a previous key that is still being held).
       if (release_trigger_ == cKeyAddr::invalid) {
         // There is no release trigger set, so we're not already waiting for one to be
         // released. But we only set the release trigger addr if there are any keys
@@ -160,6 +166,22 @@ void Plugin::releaseAllTempKeys() {
   // the trigger key until after it is pressed again. See comment above where
   // releaseAllKeys() is called.
 }
+
+
+// Test for types of keys that are eligible to trigger release of `sticky`
+// glukeys. Returns `true` if `key` will trigger release of `sticky` glukeys.
+bool isTriggerCandidate(const Key key) {
+  // Modifiers never trigger release of `sticky` glukeys
+  if (KeyboardKey::verify(key)) {
+    return ! KeyboardKey(key).isModifier();
+  }
+  // Layer change keys of all kinds also don't release `sticky` glukeys
+  if (LayerKey::verify(key)) {
+    return false;
+  }
+  return true;
+}
+
 
 } // namespace glukeys {
 } // namespace kaleidoglyph {
