@@ -59,5 +59,15 @@ class GlukeysKey {
   }
 };
 
+namespace cGlukeysKey {
+constexpr GlukeysKey meta_glukey { 0xFF };
+constexpr GlukeysKey esc_glukey  { 0xFE };
+}
+
+namespace cGlukey {
+constexpr Key meta = Key( cGlukeysKey::meta_glukey );
+constexpr Key esc  = Key( cGlukeysKey::esc_glukey  );
+}
+
 }
 } // namespace kaleidoglyph {

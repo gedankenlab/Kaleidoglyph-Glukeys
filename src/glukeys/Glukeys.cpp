@@ -47,12 +47,34 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
       return EventHandlerResult::abort;
     }
 
+    // If the meta-glukey is active, it gets released first, regardless of what key was
+    // pressed. Next, the current key becomes a glukey.
+    if (meta_glukey_addr_.isValid()) {
+      if (isTemp(meta_glukey_addr_)) {
+        if (isSticky(meta_glukey_addr_)) {
+          clearMetaGlukey();
+        } else {
+          clearTemp(meta_glukey_addr_);
+        }
+      }
+      // `clear` => `pending`
+      setTemp(event.addr);
+      return EventHandlerResult::proceed;
+    }
+
     // If there's already a release trigger set, that means previously-set `sticky`
     // glukeys need to be released before we proceed, or they would continue to be active
     // past the key that should have released them.
     if (release_trigger_ != cKeyAddr::invalid) {
       releaseAllTempKeys();
       release_trigger_ = cKeyAddr::invalid;
+    }
+
+    // If this is the meta-glukey
+    if (event.key == cGlukey::meta) {
+      setMetaGlukey(event.addr);
+      setTemp(event.addr);
+      return EventHandlerResult::abort;
     }
 
     // Determine if the pressed key is a glukey
@@ -114,6 +136,12 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
       releaseAllTempKeys();
       release_trigger_ = cKeyAddr::invalid;
     }
+    // If the released key was a `clear` meta-glukey, it needs to be cleared in a
+    // different way. Maybe it makes sense to move this to a pre-report hook?
+    if (event.addr == meta_glukey_addr_) {
+      clearMetaGlukey();
+      return EventHandlerResult::abort;
+    }
   }
 
   return EventHandlerResult::proceed;
@@ -125,6 +153,11 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
 inline
 const Key Plugin::lookupGlukey(const Key key) const {
   if (GlukeysKey::verify(key)) {
+
+    if (key == cGlukey::meta) {
+      return key;
+    }
+
     byte glukey_index = GlukeysKey(key).index();
     if (glukey_index < glukey_count_) {
       return getProgmemKey(glukeys_[glukey_index]);
@@ -171,6 +204,26 @@ void Plugin::releaseAllTempKeys() {
   // always necessary, because in the normal case, it's not possible to get a release of
   // the trigger key until after it is pressed again. See comment above where
   // releaseAllKeys() is called.
+}
+
+
+// Set meta-glukey
+void Plugin::setMetaGlukey(KeyAddr k) {
+  assert(k.isValid());
+
+  controller_[k] = cGlukey::meta;
+  meta_glukey_addr_ = k;
+  setTemp(k);
+}
+
+// Clear meta-glukey
+void Plugin::clearMetaGlukey() {
+  assert(meta_glukey_addr_.isValid());
+
+  controller_[meta_glukey_addr_] = cKey::clear;
+  clearTemp(meta_glukey_addr_);
+  clearSticky(meta_glukey_addr_);
+  meta_glukey_addr_ = cKeyAddr::invalid;
 }
 
 
