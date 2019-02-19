@@ -47,32 +47,26 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
       return EventHandlerResult::abort;
     }
 
+    // If there's already a release trigger set, that means previously-set `sticky`
+    // glukeys need to be released before we proceed, or they would continue to be active
+    // past the key that should have released them.
+    if (release_trigger_ != cKeyAddr::invalid) {
+      releaseAllTempKeys();
+      release_trigger_ = cKeyAddr::invalid;
+    }
+
     // Determine if the pressed key is a glukey
     const Key glukey = lookupGlukey(event.key);
-    // If it's not a GlukeysKey, ignore this event and proceed
-    if (glukey == cKey::clear) {
-      // It's not a glukey, check to see if this key should trigger `sticky` key
-      // release. Modifiers and Layer change keys should never trigger `sticky` glukey
-      // releases, even if they're not glukeys themselves.
-      if (! isTriggerCandidate(event.key)) {
-        return EventHandlerResult::proceed;
-      }
 
-      // This key is a release trigger candidate, so now we check to see if a release
-      // trigger has already been set (by a previous key that is still being held).
-      if (release_trigger_ == cKeyAddr::invalid) {
-        // There is no release trigger set, so we're not already waiting for one to be
-        // released. But we only set the release trigger addr if there are any keys
-        // `pending` or `sticky`.
-        if (temp_state_count_ != 0) {
-          release_trigger_ = event.addr;
-        }
-      } else {
-        // There is a release trigger set, and this is a press of a different key. Any
-        // glukeys in a `sticky` state should only apply to the trigger key, not this one,
-        // so before we finish processing this event, we release all the `sticky` keys.
-        releaseAllTempKeys();
-        release_trigger_ = cKeyAddr::invalid;
+    // If it's not a GlukeysKey...
+    if (glukey == cKey::clear) {
+      // This `event.key` is not a glukey. Check to see if this key should be set as the
+      // trigger for release of `sticky` glukeys (and clearing of `pending` ones). Certain
+      // types of keys (modifiers & layer changes) shouldn't trigger release, and we
+      // should only set the trigger if there are any glukeys in the `pending` or `sticky`
+      // states.
+      if ((temp_state_count_ != 0) && isTriggerCandidate(event.key)) {
+        release_trigger_ = event.addr;
       }
       return EventHandlerResult::proceed;
     }
