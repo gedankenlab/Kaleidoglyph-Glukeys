@@ -67,6 +67,14 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
       // states.
       if ((temp_state_count_ != 0) && isTriggerCandidate(event.key)) {
         release_trigger_ = event.addr;
+        // Also, release any `sticky` layer-shift glukeys. The layer shift has already
+        // been applied to this trigger key (`event.key` was looked up from the shifted-to
+        // layer), and we don't want the layer shift to persist beyond that.
+        if (layer_shift_addr_ != cKeyAddr::invalid) {
+          KeyEvent event{layer_shift_addr_, cKeyState::injected_release};
+          controller_.handleKeyEvent(event);
+          layer_shift_addr_ = cKeyAddr::invalid;
+        }
       }
       return EventHandlerResult::proceed;
     }
@@ -92,6 +100,10 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
     if (isTemp(event.addr)) {
       // `pending` => `sticky`
       setSticky(event.addr);
+      // If this is a layer-shift key, record its address for later release:
+      if (isLayerShiftKey(event.key)) {
+        layer_shift_addr_ = event.addr;
+      }
     }
     // If the key is either `sticky` or `locked`, stop the release event
     if (isSticky(event.addr)) {

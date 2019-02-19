@@ -46,6 +46,9 @@ class Plugin : public kaleidoglyph::Plugin {
   // Signal that `sticky` glukeys should be released
   KeyAddr release_trigger_{cKeyAddr::invalid};
 
+  // The address of the current layer-shift glukey, if any
+  KeyAddr layer_shift_addr_{cKeyAddr::invalid};
+
   const Key lookupGlukey(const Key key) const;
 
   void releaseAllTempKeys();
