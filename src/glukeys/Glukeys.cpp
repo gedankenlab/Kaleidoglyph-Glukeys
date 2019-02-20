@@ -47,6 +47,30 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
       return EventHandlerResult::abort;
     }
 
+    // If this is the escape-glukey
+    if (event.key == cGlukey::cancel) {
+      // If the meta-glukey was active, clear it:
+      if (meta_glukey_addr_.isValid()) {
+        clearMetaGlukey();
+        //controller_[meta_glukey_addr_] = cKey::clear;
+        //meta_glukey_addr_ = cKeyAddr::invalid;
+      }
+
+      // Release all `sticky` & `locked` glukeys, and clear `pending` ones
+      releaseGlukeys(true);
+      return EventHandlerResult::abort;
+    }
+
+    // If this is the meta-glukey
+    if (event.key == cGlukey::meta) {
+      if (meta_glukey_addr_.isValid()) {
+        clearMetaGlukey();
+      }
+      setMetaGlukey(event.addr);
+      setTemp(event.addr);
+      return EventHandlerResult::proceed;
+    }
+
     // If the meta-glukey is active, it gets released first, regardless of what key was
     // pressed. Next, the current key becomes a glukey.
     if (meta_glukey_addr_.isValid()) {
@@ -67,26 +91,6 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
     // past the key that should have released them.
     if (release_trigger_.isValid()) {
       releaseGlukeys();
-    }
-
-    // If this is the escape-glukey
-    if (event.key == cGlukey::cancel) {
-      // Release all `sticky` & `locked` glukeys, and clear `pending` ones
-      releaseGlukeys(true);
-
-      // If the meta-glukey was active, clear it:
-      if (meta_glukey_addr_.isValid()) {
-        controller_[meta_glukey_addr_] = cKey::clear;
-        meta_glukey_addr_ = cKeyAddr::invalid;
-      }
-      return EventHandlerResult::abort;
-    }
-
-    // If this is the meta-glukey
-    if (event.key == cGlukey::meta) {
-      setMetaGlukey(event.addr);
-      setTemp(event.addr);
-      return EventHandlerResult::abort;
     }
 
     // Determine if the pressed key is a glukey
