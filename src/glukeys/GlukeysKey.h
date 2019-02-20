@@ -65,8 +65,8 @@ constexpr GlukeysKey esc_glukey  { 0xFE };
 }
 
 namespace cGlukey {
-constexpr Key meta = Key( cGlukeysKey::meta_glukey );
-constexpr Key esc  = Key( cGlukeysKey::esc_glukey  );
+constexpr Key meta    = Key( cGlukeysKey::meta_glukey );
+constexpr Key cancel  = Key( cGlukeysKey::esc_glukey  );
 }
 
 }

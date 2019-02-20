@@ -65,9 +65,21 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
     // If there's already a release trigger set, that means previously-set `sticky`
     // glukeys need to be released before we proceed, or they would continue to be active
     // past the key that should have released them.
-    if (release_trigger_ != cKeyAddr::invalid) {
-      releaseAllTempKeys();
-      release_trigger_ = cKeyAddr::invalid;
+    if (release_trigger_.isValid()) {
+      releaseGlukeys();
+    }
+
+    // If this is the escape-glukey
+    if (event.key == cGlukey::cancel) {
+      // Release all `sticky` & `locked` glukeys, and clear `pending` ones
+      releaseGlukeys(true);
+
+      // If the meta-glukey was active, clear it:
+      if (meta_glukey_addr_.isValid()) {
+        controller_[meta_glukey_addr_] = cKey::clear;
+        meta_glukey_addr_ = cKeyAddr::invalid;
+      }
+      return EventHandlerResult::abort;
     }
 
     // If this is the meta-glukey
@@ -133,8 +145,7 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
     }
     // If the trigger key was released, also release any `sticky` glukeys
     if (event.addr == release_trigger_) {
-      releaseAllTempKeys();
-      release_trigger_ = cKeyAddr::invalid;
+      releaseGlukeys();
     }
     // If the released key was a `clear` meta-glukey, it needs to be cleared in a
     // different way. Maybe it makes sense to move this to a pre-report hook?
@@ -170,40 +181,48 @@ const Key Plugin::lookupGlukey(const Key key) const {
 }
 
 
-// Clear all `pending` keys and release all `sticky` keys
-void Plugin::releaseAllTempKeys() {
+// Clear all `pending` keys and release all `sticky` keys. If `release_locked_keys` is
+// `true`, also release `locked` glukeys. This can result in sending a release event for a
+// `locked` glukey that is still being held, but that seems to be a necessary evil that
+// I'm willing to live with.
+void Plugin::releaseGlukeys(bool release_locked_keys) {
   for (byte r = 0; r < state_byte_count; ++r) {
-    // We expect that most keys won't have any glukey bits set
-    if (temp_bits_[r] == 0) continue;
+    // We expect that most keys won't have any glukey bits set, so if these eight keys are
+    // all `clear`, skip to the next batch:
+    if ((temp_bits_[r] | glue_bits_[r]) == 0) continue;
 
-    // Store a bitfield of the keys that need to have release events sent
-    byte sticky_glukeys = temp_bits_[r] & glue_bits_[r];
+    // Bitfield of keys which will be released. Start with all `sticky` & `locked` keys:
+    byte release_bits = glue_bits_[r];
 
-    // Unset all sticky bits of keys with the temp bit set. This means that any keys in
-    // the `sticky` state will end up `clear`, not `locked`:
-    glue_bits_[r] &= ~temp_bits_[r];
+    if (release_locked_keys) {
+      // Since both `sticky` & `locked` glukeys will be released, clear all glue bits:
+      glue_bits_[r] = 0;
+    } else {
+      // Remove the `locked` glukeys from the set that will be released, then clear only
+      // the glue bits of the `sticky` glukeys:
+      release_bits &= temp_bits_[r];
+      glue_bits_[r] &= ~temp_bits_[r];
+    }
 
-    // Clear all temp bits. This means that all keys that were `pending` become `clear`:
+    // Clear all temp bits. All `pending` keys become `clear`:
     temp_bits_[r] = 0;
 
-    // Send release events for sticky keys:
+    // For each key that needs to be released, send the event:
     for (byte c = 0; c < 8; ++c) {
-      if (bitRead(sticky_glukeys, c)) {
-        // Send release event
-        KeyAddr k { byte(r * 8 + c) };
-        KeyEvent event {
-          k,
-          cKeyState::injected_release
-        };
+      if (bitRead(release_bits, c)) {
+        KeyAddr k{byte(r * 8 + c)};
+        KeyEvent event{k, cKeyState::injected_release};
         controller_.handleKeyEvent(event);
+        //controller_[k] = cKey::clear;
       }
     }
   }
+
+  // There are no `sticky` or `pending` glukeys now, so reset the count:
   temp_key_count_ = 0;
-  // It would make sense to clear the release trigger key here, as well, but it's not
-  // always necessary, because in the normal case, it's not possible to get a release of
-  // the trigger key until after it is pressed again. See comment above where
-  // releaseAllKeys() is called.
+
+  // Clear the release trigger:
+  release_trigger_ = cKeyAddr::invalid;
 }
 
 

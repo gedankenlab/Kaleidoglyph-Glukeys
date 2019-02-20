@@ -54,7 +54,7 @@ class Plugin : public kaleidoglyph::Plugin {
 
   const Key lookupGlukey(const Key key) const;
 
-  void releaseAllTempKeys();
+  void releaseGlukeys(bool release_locked_keys = false);
 
   void setMetaGlukey(KeyAddr k);
   void clearMetaGlukey();
