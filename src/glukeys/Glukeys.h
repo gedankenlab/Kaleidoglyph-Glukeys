@@ -37,11 +37,11 @@ class Plugin : public kaleidoglyph::Plugin {
   Controller& controller_;
 
   // State variables -- one `temp` bit and one `sticky` bit for each valid `KeyAddr`
-  byte temp_state_[state_byte_count];
-  byte sticky_state_[state_byte_count];
+  byte temp_bits_[state_byte_count];
+  byte glue_bits_[state_byte_count];
 
-  // How many `temp_state_` bits are set?
-  byte temp_state_count_{0};
+  // How many `temp_bits_` bits are set?
+  byte temp_key_count_{0};
 
   // Signal that `sticky` glukeys should be released
   KeyAddr release_trigger_{cKeyAddr::invalid};
@@ -62,35 +62,35 @@ class Plugin : public kaleidoglyph::Plugin {
   bool isTemp(KeyAddr k) const {
     byte r = k.addr() / 8;
     byte c = k.addr() % 8;
-    return bitRead(temp_state_[r], c);
+    return bitRead(temp_bits_[r], c);
   }
   void setTemp(KeyAddr k) {
     byte r = k.addr() / 8;
     byte c = k.addr() % 8;
-    bitSet(temp_state_[r], c);
-    ++temp_state_count_;
+    bitSet(temp_bits_[r], c);
+    ++temp_key_count_;
   }
   void clearTemp(KeyAddr k) {
     byte r = k.addr() / 8;
     byte c = k.addr() % 8;
-    bitClear(temp_state_[r], c);
-    --temp_state_count_;
+    bitClear(temp_bits_[r], c);
+    --temp_key_count_;
   }
 
   bool isSticky(KeyAddr k) const {
     byte r = k.addr() / 8;
     byte c = k.addr() % 8;
-    return bitRead(sticky_state_[r], c);
+    return bitRead(glue_bits_[r], c);
   }
   void setSticky(KeyAddr k) {
     byte r = k.addr() / 8;
     byte c = k.addr() % 8;
-    bitSet(sticky_state_[r], c);
+    bitSet(glue_bits_[r], c);
   }
   void clearSticky(KeyAddr k) {
     byte r = k.addr() / 8;
     byte c = k.addr() % 8;
-    bitClear(sticky_state_[r], c);
+    bitClear(glue_bits_[r], c);
   }
 
 };

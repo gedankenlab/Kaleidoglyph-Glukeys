@@ -87,7 +87,7 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
       // types of keys (modifiers & layer changes) shouldn't trigger release, and we
       // should only set the trigger if there are any glukeys in the `pending` or `sticky`
       // states.
-      if ((temp_state_count_ != 0) && isTriggerCandidate(event.key)) {
+      if ((temp_key_count_ != 0) && isTriggerCandidate(event.key)) {
         release_trigger_ = event.addr;
         // Also, release any `sticky` layer-shift glukeys. The layer shift has already
         // been applied to this trigger key (`event.key` was looked up from the shifted-to
@@ -174,17 +174,17 @@ const Key Plugin::lookupGlukey(const Key key) const {
 void Plugin::releaseAllTempKeys() {
   for (byte r = 0; r < state_byte_count; ++r) {
     // We expect that most keys won't have any glukey bits set
-    if (temp_state_[r] == 0) continue;
+    if (temp_bits_[r] == 0) continue;
 
     // Store a bitfield of the keys that need to have release events sent
-    byte sticky_glukeys = temp_state_[r] & sticky_state_[r];
+    byte sticky_glukeys = temp_bits_[r] & glue_bits_[r];
 
     // Unset all sticky bits of keys with the temp bit set. This means that any keys in
     // the `sticky` state will end up `clear`, not `locked`:
-    sticky_state_[r] &= ~temp_state_[r];
+    glue_bits_[r] &= ~temp_bits_[r];
 
     // Clear all temp bits. This means that all keys that were `pending` become `clear`:
-    temp_state_[r] = 0;
+    temp_bits_[r] = 0;
 
     // Send release events for sticky keys:
     for (byte c = 0; c < 8; ++c) {
@@ -199,7 +199,7 @@ void Plugin::releaseAllTempKeys() {
       }
     }
   }
-  temp_state_count_ = 0;
+  temp_key_count_ = 0;
   // It would make sense to clear the release trigger key here, as well, but it's not
   // always necessary, because in the normal case, it's not possible to get a release of
   // the trigger key until after it is pressed again. See comment above where
