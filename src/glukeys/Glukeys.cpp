@@ -41,9 +41,9 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
     // `pending` or `sticky` state, that means if its `sticky` bit is set, the key is
     // `locked`. This is the third press, so we should clear it (and we don't need to
     // clear `temp`, because we know it's already clear).
-    if (isSticky(event.addr)) {
+    if (isGlue(event.addr)) {
       // `locked` => `clear`
-      clearSticky(event.addr);
+      clearGlue(event.addr);
       return EventHandlerResult::abort;
     }
 
@@ -75,7 +75,7 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
     // pressed. Next, the current key becomes a glukey.
     if (meta_glukey_addr_.isValid()) {
       if (isTemp(meta_glukey_addr_)) {
-        if (isSticky(meta_glukey_addr_)) {
+        if (isGlue(meta_glukey_addr_)) {
           clearMetaGlukey();
         } else {
           clearTemp(meta_glukey_addr_);
@@ -137,14 +137,14 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
     // If the key is `pending`, make it `sticky`
     if (isTemp(event.addr)) {
       // `pending` => `sticky`
-      setSticky(event.addr);
+      setGlue(event.addr);
       // If this is a layer-shift key, record its address for later release:
       if (isLayerShiftKey(event.key)) {
         layer_shift_addr_ = event.addr;
       }
     }
     // If the key is either `sticky` or `locked`, stop the release event
-    if (isSticky(event.addr)) {
+    if (isGlue(event.addr)) {
       return EventHandlerResult::abort;
     }
     // If the trigger key was released, also release any `sticky` glukeys
@@ -246,7 +246,7 @@ void Plugin::clearMetaGlukey() {
 
   controller_[meta_glukey_addr_] = cKey::clear;
   clearTemp(meta_glukey_addr_);
-  clearSticky(meta_glukey_addr_);
+  clearGlue(meta_glukey_addr_);
   meta_glukey_addr_ = cKeyAddr::invalid;
 }
 

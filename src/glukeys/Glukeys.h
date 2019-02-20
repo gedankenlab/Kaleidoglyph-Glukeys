@@ -77,17 +77,17 @@ class Plugin : public kaleidoglyph::Plugin {
     --temp_key_count_;
   }
 
-  bool isSticky(KeyAddr k) const {
+  bool isGlue(KeyAddr k) const {
     byte r = k.addr() / 8;
     byte c = k.addr() % 8;
     return bitRead(glue_bits_[r], c);
   }
-  void setSticky(KeyAddr k) {
+  void setGlue(KeyAddr k) {
     byte r = k.addr() / 8;
     byte c = k.addr() % 8;
     bitSet(glue_bits_[r], c);
   }
-  void clearSticky(KeyAddr k) {
+  void clearGlue(KeyAddr k) {
     byte r = k.addr() / 8;
     byte c = k.addr() % 8;
     bitClear(glue_bits_[r], c);
