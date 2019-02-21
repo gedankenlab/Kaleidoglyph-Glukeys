@@ -119,6 +119,11 @@ class GlukeysKey {
 };
 
 constexpr
+bool isGlukeysKey(Key key) {
+  return { GlukeysKey::verify(key) };
+}
+
+constexpr
 GlukeysKey glukeysModifierKey(byte n) {
   return ( GlukeysKey{ byte(modifier_category_id | (modifier_mask & n)) } );
 }
