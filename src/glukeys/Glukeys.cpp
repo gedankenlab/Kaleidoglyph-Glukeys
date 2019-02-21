@@ -76,13 +76,18 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
     if (meta_glukey_addr_.isValid()) {
       if (isTemp(meta_glukey_addr_)) {
         if (isGlue(meta_glukey_addr_)) {
+          // If the meta-glukey is `sticky`, release it
           clearMetaGlukey();
         } else {
+          // It is being used chorded, so `pending` => `clear`
           clearTemp(meta_glukey_addr_);
         }
       }
-      // `clear` => `pending`
-      setTemp(event.addr);
+      if (isGlukeysKey(event.key)) {
+        event.key = lookupGlukey(event.key);
+      }
+      // `clear` => `locked`
+      setGlue(event.addr);
       return EventHandlerResult::proceed;
     }
 
