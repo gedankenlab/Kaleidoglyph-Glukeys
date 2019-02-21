@@ -28,6 +28,14 @@ class Plugin : public kaleidoglyph::Plugin {
 
   EventHandlerResult onKeyEvent(KeyEvent& event);
 
+  void preKeyswitchScan();
+
+  // Set the length of time from the last time a glukey entered the `pending` state before
+  // all `sticky` glukeys will release, and `pending` glukeys will be cleared.
+  void setTimeout(uint16_t ttl) {
+    temp_ttl_ = ttl;
+  }
+
  private:
   // An array of Glukey objects
   const Key* const glukeys_;
@@ -42,6 +50,11 @@ class Plugin : public kaleidoglyph::Plugin {
 
   // How many `temp_bits_` bits are set?
   byte temp_key_count_{0};
+
+  // The last time a glukey's temp bit was set
+  uint16_t temp_start_time_{0};
+  // Reset glukeys temp bits after this much time (ms) 0 == never time out
+  uint16_t temp_ttl_{2000};
 
   // Signal that `sticky` glukeys should be released
   KeyAddr release_trigger_{cKeyAddr::invalid};
@@ -71,8 +84,11 @@ class Plugin : public kaleidoglyph::Plugin {
   void setTemp(KeyAddr k) {
     byte r = k.addr() / 8;
     byte c = k.addr() % 8;
-    bitSet(temp_bits_[r], c);
-    ++temp_key_count_;
+    if (! isTemp(k)) {
+      bitSet(temp_bits_[r], c);
+      ++temp_key_count_;
+    }
+    temp_start_time_ = uint16_t(controller_.scanStartTime());
   }
   void clearTemp(KeyAddr k) {
     if (isTemp(k)) {

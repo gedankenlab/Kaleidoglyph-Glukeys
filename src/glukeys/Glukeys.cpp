@@ -173,6 +173,25 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
 }
 
 
+// Time out glukeys in the `pending` & `sticky` states after the set timeout value
+// (`temp_ttl_`). The time for a `temp` state glukey gets extended whenever another `temp`
+// glukey is pressed.
+void Plugin::preKeyswitchScan() {
+  // If there are no `pending` or `sticky` keys, or if glukeys is configured to never time
+  // out `temp` glukeys, abort:
+  if (temp_key_count_ == 0 || temp_ttl_ == 0) return;
+
+  // Compare the difference between the current time and the last time a `temp` bit was
+  // set to the ttl. If we mixed different integer types, this would correct for overflow,
+  // so do it that way to stay consistent with other code:
+  uint16_t current_time = controller_.scanStartTime();
+  uint16_t elapsed_time = current_time - temp_start_time_;
+  if (elapsed_time > temp_ttl_) {
+    releaseGlukeys();
+  }
+}
+
+
 // Check to see if the `Key` is a Glukeys key and if so, return the corresponding
 // (looked-up) `Key` value, or `cKey::clear` if there is none.
 inline
