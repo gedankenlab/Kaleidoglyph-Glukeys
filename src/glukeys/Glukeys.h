@@ -49,15 +49,19 @@ class Plugin : public kaleidoglyph::Plugin {
   // The address of the current layer-shift glukey, if any
   KeyAddr layer_shift_addr_{cKeyAddr::invalid};
 
+#ifdef KALEIDOGLYPH_GLUKEYS_WITH_META
   // Address of the active `meta_glukey`, if any
   KeyAddr meta_glukey_addr_{cKeyAddr::invalid};
+#endif
 
   const Key lookupGlukey(const Key key) const;
 
   void releaseGlukeys(bool release_locked_keys = false);
 
+#ifdef KALEIDOGLYPH_GLUKEYS_WITH_META
   void setMetaGlukey(KeyAddr k);
   void clearMetaGlukey();
+#endif
 
   bool isTemp(KeyAddr k) const {
     byte r = k.addr() / 8;

@@ -49,18 +49,20 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
 
     // If this is the escape-glukey
     if (event.key == cGlukey::cancel) {
+#ifdef KALEIDOGLYPH_GLUKEYS_WITH_META
       // If the meta-glukey was active, clear it:
       if (meta_glukey_addr_.isValid()) {
         clearMetaGlukey();
         //controller_[meta_glukey_addr_] = cKey::clear;
         //meta_glukey_addr_ = cKeyAddr::invalid;
       }
-
+#endif
       // Release all `sticky` & `locked` glukeys, and clear `pending` ones
       releaseGlukeys(true);
       return EventHandlerResult::abort;
     }
 
+#ifdef KALEIDOGLYPH_GLUKEYS_WITH_META
     // If this is the meta-glukey
     if (event.key == cGlukey::meta) {
       if (meta_glukey_addr_.isValid()) {
@@ -90,6 +92,7 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
       setGlue(event.addr);
       return EventHandlerResult::proceed;
     }
+#endif
 
     // If there's already a release trigger set, that means previously-set `sticky`
     // glukeys need to be released before we proceed, or they would continue to be active
@@ -156,12 +159,14 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
     if (event.addr == release_trigger_) {
       releaseGlukeys();
     }
+#ifdef KALEIDOGLYPH_GLUKEYS_WITH_META
     // If the released key was a `clear` meta-glukey, it needs to be cleared in a
     // different way. Maybe it makes sense to move this to a pre-report hook?
     if (event.addr == meta_glukey_addr_) {
       clearMetaGlukey();
       return EventHandlerResult::abort;
     }
+#endif
   }
 
   return EventHandlerResult::proceed;
@@ -236,6 +241,7 @@ void Plugin::releaseGlukeys(bool release_locked_keys) {
 }
 
 
+#ifdef KALEIDOGLYPH_GLUKEYS_WITH_META
 // Set meta-glukey
 void Plugin::setMetaGlukey(KeyAddr k) {
   assert(k.isValid());
@@ -254,6 +260,7 @@ void Plugin::clearMetaGlukey() {
   clearGlue(meta_glukey_addr_);
   meta_glukey_addr_ = cKeyAddr::invalid;
 }
+#endif
 
 
 // Test for types of keys that are eligible to trigger release of `sticky`
