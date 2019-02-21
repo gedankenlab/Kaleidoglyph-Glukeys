@@ -71,10 +71,12 @@ class Plugin : public kaleidoglyph::Plugin {
     ++temp_key_count_;
   }
   void clearTemp(KeyAddr k) {
-    byte r = k.addr() / 8;
-    byte c = k.addr() % 8;
-    bitClear(temp_bits_[r], c);
-    --temp_key_count_;
+    if (isTemp(k)) {
+      byte r = k.addr() / 8;
+      byte c = k.addr() % 8;
+      bitClear(temp_bits_[r], c);
+      --temp_key_count_;
+    }
   }
 
   bool isGlue(KeyAddr k) const {
