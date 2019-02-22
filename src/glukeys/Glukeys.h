@@ -36,6 +36,13 @@ class Plugin : public kaleidoglyph::Plugin {
     temp_ttl_ = ttl;
   }
 
+  void setAutoModifiers(bool on = true) {
+    auto_modifier_glukeys_ = on;
+  }
+  void setAutoLayers(bool on = true) {
+    auto_layer_glukeys_ = on;
+  }
+
  private:
   // An array of Glukey objects
   const Key* const glukeys_;
@@ -66,6 +73,9 @@ class Plugin : public kaleidoglyph::Plugin {
   // Address of the active `meta_glukey`, if any
   KeyAddr meta_glukey_addr_{cKeyAddr::invalid};
 #endif
+
+  bool auto_modifier_glukeys_{true};
+  bool auto_layer_glukeys_{false};
 
   const Key lookupGlukey(const Key key) const;
 

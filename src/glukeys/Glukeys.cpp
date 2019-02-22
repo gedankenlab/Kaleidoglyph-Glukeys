@@ -198,7 +198,7 @@ inline
 const Key Plugin::lookupGlukey(const Key key) const {
   Key result_key{cKey::clear};
 
-  if (GlukeysKey::verify(key)) {
+  if (isGlukeysKey(key)) {
     GlukeysKey glukey{key};
     result_key = glukey.getKey();
     if (result_key == cKey::clear) {
@@ -209,6 +209,14 @@ const Key Plugin::lookupGlukey(const Key key) const {
         result_key = cKey::blank;
       }
     }
+  }
+
+  if (auto_modifier_glukeys_ && isModifierKey(key)) {
+    result_key = key;
+  }
+
+  if (auto_layer_glukeys_ && isLayerShiftKey(key)) {
+    result_key = key;
   }
 
   return result_key;
