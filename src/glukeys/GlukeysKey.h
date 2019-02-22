@@ -75,27 +75,27 @@ class GlukeysKey {
   }
 
   constexpr
-  bool isModifierKey() const {
+  bool isModifierGlukey() const {
     return ( (index_ & category_mask) == modifier_category_id );
   }
 
   constexpr
-  bool isLayerKey() const {
+  bool isLayerGlukey() const {
     return ( (index_ & category_mask) == layer_category_id );
   }
 
   constexpr
-  Key modifierKey() const {
-    return ( bool(index_ & modifier_category_id)
+  Key getModifierKey() const {
+    return { bool(index_ & modifier_category_id)
              ? cKey::blank
-             : KeyboardKey::modifierKey(index_ & modifier_mask) );
+             : kaleidoglyph::modifierKey(index_ & modifier_mask) };
   }
 
   constexpr
-  Key layerShiftKey() const {
-    return ( bool(index_ & layer_category_id)
+  Key getLayerShiftKey() const {
+    return { bool(index_ & layer_category_id)
              ? cKey::blank
-             : LayerKey::layerShiftKey(index_ & layer_mask) );
+             : Key(layerShiftKey(index_ & layer_mask)) };
   }
 
   // Return a `Key` determined by the index bits of the GlukeysKey. Possible return values
@@ -106,9 +106,9 @@ class GlukeysKey {
     byte category_id = index_ & category_mask;
     switch (category_id) {
       case modifier_category_id :
-        return KeyboardKey::modifierKey(index_ & modifier_mask);
+        return modifierKey(index_ & modifier_mask);
       case layer_category_id :
-        return LayerKey::layerShiftKey(index_ & layer_mask);
+        return layerShiftKey(index_ & layer_mask);
       case glukey_category_id :
         return cKey::clear;
       default:
