@@ -4,6 +4,7 @@
 
 #include KALEIDOGLYPH_HARDWARE_H
 #include KALEIDOGLYPH_KEYADDR_H
+#include KALEIDOGLYPH_HARDWARE_KEYBOARD_H
 #include <kaleidoglyph/Key.h>
 #include <kaleidoglyph/Plugin.h>
 #include <kaleidoglyph/Keymap.h>
@@ -11,6 +12,7 @@
 #include <kaleidoglyph/cKey.h>
 #include <kaleidoglyph/EventHandlerResult.h>
 #include <kaleidoglyph/hid/Report.h>
+#include <kaleidoglyph/utils.h>
 
 #include "glukeys/GlukeysKey.h"
 
@@ -18,13 +20,13 @@ namespace kaleidoglyph {
 namespace glukeys {
 
 // The number of bytes needed to store a bitfield with one bit per KeyAddr
-constexpr byte state_byte_count = bitfieldSize(total_keys);
+constexpr byte state_byte_count = bitfieldByteSize(total_keys);
 
 class Plugin : public kaleidoglyph::Plugin {
 
  public:
-  Plugin(const Key* const glukeys, const byte glukey_count, Controller& controller)
-      : glukeys_(glukeys), glukey_count_(glukey_count), controller_(controller) {}
+  Plugin(const Key* const glukeys, const byte glukey_count, Controller& controller, hardware::Keyboard& keyboard)
+      : glukeys_(glukeys), glukey_count_(glukey_count), controller_(controller), keyboard_(keyboard) {}
 
   EventHandlerResult onKeyEvent(KeyEvent& event);
 
@@ -43,6 +45,20 @@ class Plugin : public kaleidoglyph::Plugin {
     auto_layer_glukeys_ = on;
   }
 
+  bool isSticky(KeyAddr k) const {
+    return { isGlue(k) && isTemp(k) };
+  }
+  bool isLocked(KeyAddr k) const {
+    return { isGlue(k) && !isTemp(k) };
+  }
+  // bool isSticky(KeyAddr k) const {
+  //   byte r = k.addr() / 8;
+  //   byte c = k.addr() % 8;
+  //   bool is_glue = bitRead(glue_bits_[r], c);
+  //   bool is_temp = bitRead(temp_bits_[r], c);
+  //   return (is_glue && is_temp);
+  // }
+
  private:
   // An array of Glukey objects
   const Key* const glukeys_;
@@ -50,6 +66,9 @@ class Plugin : public kaleidoglyph::Plugin {
 
   // A reference to the keymap for lookups
   Controller& controller_;
+
+  // A reference to the keyboard hardware
+  hardware::Keyboard& keyboard_;
 
   // State variables -- one `temp` bit and one `sticky` bit for each valid `KeyAddr`
   byte temp_bits_[state_byte_count];
