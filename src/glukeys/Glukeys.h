@@ -1,11 +1,12 @@
 // -*- c++ -*-
 
+#pragma once
+
 #include <Arduino.h>
 
-#include KALEIDOGLYPH_HARDWARE_H
-#include KALEIDOGLYPH_KEYADDR_H
-#include KALEIDOGLYPH_HARDWARE_KEYBOARD_H
 #include <kaleidoglyph/Key.h>
+#include <kaleidoglyph/KeyAddr.h>
+#include <kaleidoglyph/hardware/Keyboard.h>
 #include <kaleidoglyph/Plugin.h>
 #include <kaleidoglyph/Keymap.h>
 #include <kaleidoglyph/Controller.h>
@@ -13,6 +14,7 @@
 #include <kaleidoglyph/EventHandlerResult.h>
 #include <kaleidoglyph/hid/Report.h>
 #include <kaleidoglyph/utils.h>
+#include <kaleidoglyph/hooks.h>
 
 #include "glukeys/GlukeysKey.h"
 
@@ -25,8 +27,8 @@ constexpr byte state_byte_count = bitfieldByteSize(total_keys);
 class Plugin : public kaleidoglyph::Plugin {
 
  public:
-  Plugin(const Key* const glukeys, const byte glukey_count, Controller& controller, hardware::Keyboard& keyboard)
-      : glukeys_(glukeys), glukey_count_(glukey_count), controller_(controller), keyboard_(keyboard) {}
+  Plugin(const Key* const glukeys, const byte glukey_count, Controller& controller)
+      : glukeys_(glukeys), glukey_count_(glukey_count), controller_(controller) {}
 
   EventHandlerResult onKeyEvent(KeyEvent& event);
 
@@ -66,9 +68,6 @@ class Plugin : public kaleidoglyph::Plugin {
 
   // A reference to the keymap for lookups
   Controller& controller_;
-
-  // A reference to the keyboard hardware
-  hardware::Keyboard& keyboard_;
 
   // State variables -- one `temp` bit and one `sticky` bit for each valid `KeyAddr`
   byte temp_bits_[state_byte_count];
@@ -137,6 +136,12 @@ class Plugin : public kaleidoglyph::Plugin {
     byte r = k.addr() / 8;
     byte c = k.addr() % 8;
     bitSet(glue_bits_[r], c);
+    // This is an ugly workaround that I came up with to deal with the fact that the LED
+    // mode for glukeys isn't the one that processes the events. I can't have the two
+    // depend on each other at instantiation time, and I don't like any of the other
+    // solutions. I want Glukeys to be easy to compile if there's no LED plugin, so this
+    // may be the best option.
+    hooks::setLedForeground(k);
   }
   void clearGlue(KeyAddr k) {
     byte r = k.addr() / 8;

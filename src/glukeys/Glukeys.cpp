@@ -34,7 +34,6 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
     if (isTemp(event.addr)) {
       // `sticky` => `locked`
       clearTemp(event.addr);
-      keyboard_.setKeyColor(event.addr, {0, 100, 200});
       return EventHandlerResult::abort;
     }
 
@@ -45,7 +44,6 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
     if (isGlue(event.addr)) {
       // `locked` => `clear`
       clearGlue(event.addr);
-      keyboard_.setKeyColor(event.addr, {0, 0, 0});
       return EventHandlerResult::abort;
     }
 
@@ -92,7 +90,6 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
       }
       // `clear` => `locked`
       setGlue(event.addr);
-      keyboard_.setKeyColor(event.addr, {0, 100, 200});
       return EventHandlerResult::proceed;
     }
 #endif
@@ -149,7 +146,6 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
     if (isTemp(event.addr)) {
       // `pending` => `sticky`
       setGlue(event.addr);
-      keyboard_.setKeyColor(event.addr, {100, 200, 0});
       // If this is a layer-shift key, record its address for later release:
       if (isLayerShiftKey(event.key)) {
         layer_shift_addr_ = event.addr;
@@ -260,7 +256,6 @@ void Plugin::releaseGlukeys(bool release_locked_keys) {
         KeyEvent event{k, cKeyState::injected_release};
         controller_.handleKeyEvent(event);
         //controller_[k] = cKey::clear;
-        keyboard_.setKeyColor(k, {0, 0, 0});
       }
     }
   }
@@ -290,7 +285,6 @@ void Plugin::clearMetaGlukey() {
   controller_[meta_glukey_addr_] = cKey::clear;
   clearTemp(meta_glukey_addr_);
   clearGlue(meta_glukey_addr_);
-  keyboard_.setKeyColor(meta_glukey_addr_, {0, 0, 0});
   meta_glukey_addr_ = cKeyAddr::invalid;
 }
 #endif

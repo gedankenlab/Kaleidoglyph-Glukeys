@@ -19,3 +19,4 @@
 #pragma once
 
 #include "glukeys/Glukeys.h"
+#include "glukeys/GlukeysLedMode.h"
