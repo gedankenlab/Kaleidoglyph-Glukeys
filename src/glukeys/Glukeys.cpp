@@ -34,6 +34,12 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
     if (isTemp(event.addr)) {
       // `sticky` => `locked`
       clearTemp(event.addr);
+      // If this is a layer-shift key, unset `layer_shift_addr_`, which is only needed
+      // when a `sticky` key is being released to prevent it from interfering with
+      // subsequent keys.
+      if (event.addr == layer_shift_addr_) {
+        layer_shift_addr_ = cKeyAddr::invalid;
+      }
       return EventHandlerResult::abort;
     }
 
