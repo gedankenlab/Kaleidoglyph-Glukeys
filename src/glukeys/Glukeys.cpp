@@ -26,6 +26,13 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
     return EventHandlerResult::proceed;
   }
 
+  if (! plugin_active_) {
+    if (isGlukeysKey(event.key)) {
+      event.key = lookupGlukey(event.key);
+    }
+    return EventHandlerResult::proceed;
+  }
+
   if (event.state.toggledOn()) {
 
     // This key can't be `pending` if it's toggling on (unless another plugin is injecting

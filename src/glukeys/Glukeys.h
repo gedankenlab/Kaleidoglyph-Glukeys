@@ -30,6 +30,21 @@ class Plugin : public kaleidoglyph::Plugin {
   Plugin(const Key* const glukeys, const byte glukey_count, Controller& controller)
       : glukeys_(glukeys), glukey_count_(glukey_count), controller_(controller) {}
 
+  void activate() {
+    plugin_active_ = true;
+  }
+  void deactivate() {
+    plugin_active_ = false;
+    releaseGlukeys(true);
+  }
+  void toggle() {
+    if (plugin_active_) {
+      deactivate();
+    } else {
+      activate();
+    }
+  }
+
   EventHandlerResult onKeyEvent(KeyEvent& event);
 
   void preKeyswitchScan();
@@ -72,6 +87,8 @@ class Plugin : public kaleidoglyph::Plugin {
   // State variables -- one `temp` bit and one `sticky` bit for each valid `KeyAddr`
   byte temp_bits_[state_byte_count];
   byte glue_bits_[state_byte_count];
+
+  bool plugin_active_{true};
 
   // How many `temp_bits_` bits are set?
   byte temp_key_count_{0};
