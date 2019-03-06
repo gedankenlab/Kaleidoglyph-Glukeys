@@ -133,7 +133,7 @@ class Plugin : public kaleidoglyph::Plugin {
       bitSet(temp_bits_[r], c);
       ++temp_key_count_;
     }
-    temp_start_time_ = uint16_t(controller_.scanStartTime());
+    temp_start_time_ = uint16_t(Controller::scanStartTime());
   }
   void clearTemp(KeyAddr k) {
     if (isTemp(k)) {

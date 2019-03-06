@@ -5,6 +5,7 @@
 
 #include <Arduino.h>
 
+#include <kaleidoglyph/Controller.h>
 #include <kaleidoglyph/Key.h>
 #include <kaleidoglyph/KeyAddr.h>
 #include <kaleidoglyph/KeyArray.h>
@@ -197,7 +198,7 @@ void Plugin::preKeyswitchScan() {
   // Compare the difference between the current time and the last time a `temp` bit was
   // set to the ttl. If we mixed different integer types, this would correct for overflow,
   // so do it that way to stay consistent with other code:
-  uint16_t current_time = controller_.scanStartTime();
+  uint16_t current_time = Controller::scanStartTime();
   uint16_t elapsed_time = current_time - temp_start_time_;
   if (elapsed_time > temp_ttl_) {
     releaseGlukeys();
