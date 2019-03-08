@@ -70,7 +70,7 @@ class GlukeysKey {
   }
 
   static constexpr
-  bool verify(Key key) {
+  bool verifyType(Key key) {
     return ((uint16_t(key) >> index_bits) == type_id);
   }
 
@@ -120,7 +120,7 @@ class GlukeysKey {
 
 constexpr
 bool isGlukeysKey(Key key) {
-  return { GlukeysKey::verify(key) };
+  return { GlukeysKey::verifyType(key) };
 }
 
 constexpr

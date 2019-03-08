@@ -308,11 +308,11 @@ void Plugin::clearMetaGlukey() {
 // glukeys. Returns `true` if `key` will trigger release of `sticky` glukeys.
 bool isTriggerCandidate(const Key key) {
   // Modifiers never trigger release of `sticky` glukeys
-  if (KeyboardKey::verify(key)) {
+  if (KeyboardKey::verifyType(key)) {
     return ! KeyboardKey(key).isModifier();
   }
   // Layer change keys of all kinds also don't release `sticky` glukeys
-  if (LayerKey::verify(key)) {
+  if (LayerKey::verifyType(key)) {
     return false;
   }
   return true;
