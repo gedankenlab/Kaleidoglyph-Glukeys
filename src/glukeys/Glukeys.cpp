@@ -214,9 +214,9 @@ const Key Plugin::lookupGlukey(const Key key) const {
 
   if (isGlukeysKey(key)) {
     GlukeysKey glukey{key};
-    result_key = glukey.getKey();
+    result_key = getKey(glukey);
     if (result_key == cKey::clear) {
-      byte index = glukey.index();
+      byte index = glukey.data();
       if (index < glukey_count_) {
         return getProgmemKey(glukeys_[index]);
       } else {

@@ -4,20 +4,17 @@
 
 #include <Arduino.h>
 
-#include "kaleidoglyph/Key.h"
 #include <assert.h>
+#include "kaleidoglyph/Key.h"
+#include "kaleidoglyph/Key/PluginKey.h"
 
-
-#if defined(GLUKEYS_CONSTANTS_H)
-#include GLUKEYS_CONSTANTS_H
+#if defined(KALEIDOGLYPH_GLUKEYS_CONSTANTS_H)
+#include KALEIDOGLYPH_GLUKEYS_CONSTANTS_H
 #else
 namespace kaleidoglyph {
 namespace glukeys {
 
-constexpr byte type_id_bits {8};
-constexpr byte index_bits {8};
-
-constexpr byte type_id { 0b01000010 };
+constexpr byte key_type_id{0b0000010};
 
 // Special glukeys have the high bit set. The next bit tells which type of special it is
 // (modifier or layer change)
@@ -34,93 +31,38 @@ constexpr byte glukey_mask          { 0b01111111 };
 
 constexpr byte invalid_glukey_index { 0b11100000 };
 
-}
-}
+}  // namespace qukeys
+}  // namespace kaleidoglyph
 #endif
 
 namespace kaleidoglyph {
 namespace glukeys {
 
-
-class GlukeysKey {
-
- private:
-  uint16_t index_ : index_bits, type_id_ : type_id_bits;
-
- public:
-  byte index() const { return index_; }
-
-  GlukeysKey() : index_    (0),
-                 type_id_ (type_id) {}
-
-  constexpr explicit
-  GlukeysKey(byte index) : index_   (index),
-                           type_id_ (type_id) {}
-
-  explicit
-  GlukeysKey(Key key) : index_   (uint16_t(key)              ),
-                        type_id_ (uint16_t(key) >> index_bits)  {
-    assert(type_id_ == type_id);
-  }
-
-  constexpr
-  operator Key() const {
-    return Key( index_                 |
-                type_id_ << index_bits   );
-  }
-
-  static constexpr
-  bool verifyType(Key key) {
-    return ((uint16_t(key) >> index_bits) == type_id);
-  }
-
-  constexpr
-  bool isModifierGlukey() const {
-    return ( (index_ & category_mask) == modifier_category_id );
-  }
-
-  constexpr
-  bool isLayerGlukey() const {
-    return ( (index_ & category_mask) == layer_category_id );
-  }
-
-  constexpr
-  Key getModifierKey() const {
-    return { bool(index_ & modifier_category_id)
-             ? cKey::blank
-             : kaleidoglyph::modifierKey(index_ & modifier_mask) };
-  }
-
-  constexpr
-  Key getLayerShiftKey() const {
-    return { bool(index_ & layer_category_id)
-             ? cKey::blank
-             : Key(layerShiftKey(index_ & layer_mask)) };
-  }
-
-  // Return a `Key` determined by the index bits of the GlukeysKey. Possible return values
-  // are: a keyboard modifier key, a layer-shift key, an indicator that this key can be
-  // used to look up a `Key` value in the `glukeys_[]` array (`cKey::clear`), and an
-  // indicator that this GlukeysKey is invalid (`cKey::blank`).
-  Key getKey() const {
-    byte category_id = index_ & category_mask;
-    switch (category_id) {
-      case modifier_category_id :
-        return modifierKey(index_ & modifier_mask);
-      case layer_category_id :
-        return layerShiftKey(index_ & layer_mask);
-      case glukey_category_id :
-        return cKey::clear;
-      default:
-        return cKey::blank;
-    }
-  }
-
-};
+typedef PluginKey<key_type_id> GlukeysKey;
 
 constexpr
 bool isGlukeysKey(Key key) {
   return { GlukeysKey::verifyType(key) };
+}
+
+// Return a `Key` determined by the index bits of the GlukeysKey. Possible return values
+// are: a keyboard modifier key, a layer-shift key, an indicator that this key can be used
+// to look up a `Key` value in the `glukeys_[]` array (`cKey::clear`), and an indicator
+// that this GlukeysKey is invalid (`cKey::blank`).
+inline
+Key getKey(GlukeysKey glukeys_key) {
+  byte index = glukeys_key.data();
+  byte category_id = index & category_mask;
+  switch (category_id) {
+    case modifier_category_id :
+      return modifierKey(index & modifier_mask);
+    case layer_category_id :
+      return layerShiftKey(index & layer_mask);
+    case glukey_category_id :
+      return cKey::clear;
+    default:
+      return cKey::blank;
+  }
 }
 
 constexpr
@@ -151,5 +93,5 @@ constexpr Key meta    = Key( cGlukeysKey::meta_glukey );
 constexpr Key cancel  = Key( cGlukeysKey::esc_glukey  );
 }
 
-}
-} // namespace kaleidoglyph {
+}  // namespace qukeys
+}  // namespace kaleidoglyph
