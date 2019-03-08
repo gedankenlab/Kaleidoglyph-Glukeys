@@ -18,18 +18,18 @@ constexpr byte key_type_id{0b0000010};
 
 // Special glukeys have the high bit set. The next bit tells which type of special it is
 // (modifier or layer change)
-constexpr byte category_mask        { 0b11000000 };
-constexpr byte layer_category_id    { 0b10000000 };
-constexpr byte layer_mask           { 0b00011111 }; // max < 32
+constexpr byte category_mask        { 0b11'000000 };
+constexpr byte layer_category_id    { 0b10'000000 };
+constexpr byte layer_mask           { 0b00'011111 }; // max < 32
 // Maybe I can use the third highest bit to indicate EEPROM layers?
-constexpr byte modifier_category_id { 0b11000000 };
-constexpr byte modifier_mask        { 0b00000111 }; // max <  8
+constexpr byte modifier_category_id { 0b11'000000 };
+constexpr byte modifier_mask        { 0b00'000111 }; // max <  8
 // I've got six bits left, so I could use the bottom three for the first modifier, and the
 // top three for another, but it's probably better to just use the bottom three.
-constexpr byte glukey_category_id   { 0b00000000 };
-constexpr byte glukey_mask          { 0b01111111 };
+constexpr byte glukey_category_id   { 0b00'000000 };
+constexpr byte glukey_mask          { 0b01'111111 };
 
-constexpr byte invalid_glukey_index { 0b11100000 };
+constexpr byte invalid_glukey_index { 0b11'100000 };
 
 }  // namespace qukeys
 }  // namespace kaleidoglyph
