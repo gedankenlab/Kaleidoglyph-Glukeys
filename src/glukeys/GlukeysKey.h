@@ -29,8 +29,6 @@ constexpr byte modifier_mask        { 0b00'000111 }; // max <  8
 constexpr byte glukey_category_id   { 0b00'000000 };
 constexpr byte glukey_mask          { 0b01'111111 };
 
-constexpr byte invalid_glukey_index { 0b11'100000 };
-
 }  // namespace qukeys
 }  // namespace kaleidoglyph
 #endif
