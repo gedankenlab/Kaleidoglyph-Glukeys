@@ -26,8 +26,8 @@ constexpr byte modifier_category_id { 0b11'000000 };
 constexpr byte modifier_mask        { 0b00'000111 }; // max <  8
 // I've got six bits left, so I could use the bottom three for the first modifier, and the
 // top three for another, but it's probably better to just use the bottom three.
-constexpr byte glukey_category_id   { 0b00'000000 };
-constexpr byte glukey_mask          { 0b01'111111 };
+constexpr byte glukey_category_id   { 0b0'0000000 };
+constexpr byte glukey_mask          { 0b0'1111111 };
 
 }  // namespace qukeys
 }  // namespace kaleidoglyph
