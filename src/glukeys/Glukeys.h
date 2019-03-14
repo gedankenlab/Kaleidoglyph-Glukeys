@@ -12,7 +12,6 @@
 #include <kaleidoglyph/Controller.h>
 #include <kaleidoglyph/cKey.h>
 #include <kaleidoglyph/EventHandlerResult.h>
-#include <kaleidoglyph/hid/Report.h>
 #include <kaleidoglyph/utils.h>
 #include <kaleidoglyph/hooks.h>
 

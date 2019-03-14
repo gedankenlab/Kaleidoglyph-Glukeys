@@ -12,7 +12,6 @@
 #include <kaleidoglyph/KeyEvent.h>
 #include <kaleidoglyph/KeyState.h>
 #include <kaleidoglyph/Plugin.h>
-#include <kaleidoglyph/hid/Report.h>
 #include <kaleidoglyph/cKey.h>
 
 
