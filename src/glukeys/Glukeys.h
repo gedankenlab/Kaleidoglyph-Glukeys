@@ -26,8 +26,9 @@ constexpr byte state_byte_count = bitfieldByteSize(total_keys);
 class Plugin : public kaleidoglyph::Plugin {
 
  public:
-  Plugin(const Key* const glukeys, const byte glukey_count, Controller& controller)
-      : glukeys_(glukeys), glukey_count_(glukey_count), controller_(controller) {}
+  template<byte _glukey_count>
+  Plugin(const Key (&glukeys)[_glukey_count], Controller& controller)
+      : glukeys_(glukeys), glukey_count_(_glukey_count), controller_(controller) {}
 
   void activate() {
     plugin_active_ = true;
