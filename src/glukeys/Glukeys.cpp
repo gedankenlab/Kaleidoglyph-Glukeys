@@ -35,9 +35,12 @@ EventHandlerResult Plugin::onKeyEvent(KeyEvent& event) {
 
   if (event.state.toggledOn()) {
 
-    // This key can't be `pending` if it's toggling on (unless another plugin is injecting
-    // this event), so if its `temp` bit is set, that means it's already in the `sticky`
-    // state, so this is the second press of the key, and we should therefore lock it.
+    // This key can't be `pending` if it's toggling on (unless another plugin is
+    // injecting this event), so if its `temp` bit is set, that means it's
+    // already in the `sticky` state, so this is the second press of the key,
+    // and we should therefore lock it. And if it is an virtual key event that
+    // isn't marked `injected`, we end up putting the key in the `clear` state,
+    // which is the best choice.
     if (isTemp(event.addr)) {
       // `sticky` => `locked`
       clearTemp(event.addr);
