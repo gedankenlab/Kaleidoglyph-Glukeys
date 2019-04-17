@@ -20,7 +20,7 @@ class LedMode : public LedForegroundMode {
   LedMode(glukeys::Plugin& glukeys_plugin)
       : glukeys_plugin_(glukeys_plugin) {}
 
-  bool setForegroundColor(KeyAddr k, LedController& led_controller);
+  bool setForegroundColor(KeyAddr k);
 
  private:
   const glukeys::Plugin& glukeys_plugin_;
