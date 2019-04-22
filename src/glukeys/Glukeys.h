@@ -23,7 +23,7 @@ namespace glukeys {
 // The number of bytes needed to store a bitfield with one bit per KeyAddr
 constexpr byte state_byte_count = bitfieldByteSize(total_keys);
 
-class Plugin : public kaleidoglyph::Plugin {
+class Plugin : public EventHandler {
 
  public:
   template<byte _glukey_count>
